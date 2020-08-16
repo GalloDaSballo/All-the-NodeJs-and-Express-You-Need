@@ -1,6 +1,8 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy;
 
+const crypto = require('crypto')
+
 const db = require('../db')
 
 //Rules to encrypt
@@ -14,8 +16,8 @@ passport.deserializeUser(async (id, done) => {
     console.log("passport.deserializeUser")
     try{
         const user = await db('users').where({id}).first()
-        delete user.password //Avoid leaking hashed password
-        done(null, user)
+        const {email} = user
+        done(null, {id, email})
     } catch(err){
         done(err,null)
     }
@@ -33,10 +35,15 @@ passport.use(new LocalStrategy({
         console.log("Going in db username", username)
         const user = await db('users').where({ email: username }).first()
         console.log("user", user)
-        if (!user) return done(null, false);
+        if (!user) return done(null, false, { message: 'Incorrect email or password'});
 
         //TODO: Verify Pass
+        const hash = crypto.pbkdf2Sync(password, user.salt, 1000, 64, 'sha512').toString('hex')
+        const passwordsMatch = user.password === hash
 
+        if(!passwordsMatch){
+            return done(null, false, { message: 'Incorrect email or password'}) //Never say which one is wrong to prevent leaks
+        }
 
         return done(null, user)
     }

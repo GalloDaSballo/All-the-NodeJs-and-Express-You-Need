@@ -13,7 +13,6 @@ router.post('/login',
     console.log("req.user", req.user)
 
     res.send("OK")
-    res.redirect("/") //Add this so it redirects after auth for templating stuff
 });
 
 router.post('/me',
@@ -46,7 +45,7 @@ router.post('/register', async (req, res) => {
         return res.status(400).send("User already exists")
     }
 
-    const insert = await db('users').insert({email, password: hash}).returning(['id', 'email'])
+    const insert = await db('users').insert({email, password: hash, salt}).returning(['id', 'email'])
 
     res.send(insert)
 })
