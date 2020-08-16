@@ -1,0 +1,11 @@
+<header>
+    This header of mine
+    <% if (user) { %>
+        <h2><%= user.email %></h2>
+    <% } %>
+    
+    <% if (!user) { %>
+        <a href="/register">Register</a>
+        <a href="/login">Login</a>
+    <% } %>
+</header>
